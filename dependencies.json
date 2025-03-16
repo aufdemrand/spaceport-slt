@@ -1,0 +1,12 @@
+  {
+
+    "$schema": "sublime://packagecontrol.io/schemas/dependencies",
+
+    "*": {
+        "*": [
+        	"python-six",
+          "websocket-client"
+        ]
+    }
+
+  }
