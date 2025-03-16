@@ -1,3 +1,4 @@
+// Documentation at https://www.sublimetext.com/docs/color_schemes.html
 {
 	"variables":
 	{
@@ -10,25 +11,31 @@
 		{
 			"name": "embedded.groovy",
 			"scope": "embedded.groovy",
-			"background": "color(black alpha(0.5))"
+			"background": "color(black alpha(0.3))"
 		},
 
 		{
 			"name": "embedded.closure",
 			"scope": "embedded.closure",
-			"background": "color(black alpha(0.7))"
+			"background": "color(black alpha(0.8))"
 		},
 
 		{
 			"name": "embedded.action",
 			"scope": "embedded.action",
-			"background": "color(goldenrodyellow alpha(0.1))"
+			"background": "color(teal alpha(0.2))"
 		},
 
 		{
 			"name": "embedded.reaction",
 			"scope": "embedded.reaction",
-			"background": "color(rebeccapurple alpha(0.1))"
+			"background": "color(purple alpha(0.2))"
+		},
+
+		{
+			"name": "embedded.css",
+			"scope": "embedded.css",
+			"background": "color(black alpha(0.1))"
 		}
 	]
 }
