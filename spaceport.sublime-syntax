@@ -1,0 +1,144 @@
+%YAML 1.2
+name: Spaceport .GHTML
+scope: source.ghtml
+version: 2
+file_extensions:
+  - ghtml
+extends: Packages/HTML/HTML (Plain).sublime-syntax
+
+
+contexts:
+  main:
+    - meta_prepend: true
+
+    - match: '<style>'
+      scope: embedded.css.start
+      push: embedded_css
+      with_prototype:
+        - match: '</style>'
+          scope: embedded.css.end
+          pop: true
+
+    - match: '\<%'
+      scope: embedded.groovy.start
+      push: embedded_groovy
+
+    - match: '\${{'
+      scope: embedded.reaction.start
+      push: embedded_reaction
+      with_prototype:
+      - match: '}}'
+        scope: embedded.reaction.end
+        pop: 3
+      - match: '"""'
+        push: embedded_html
+
+    - match: '\${'
+      scope: embedded.closure.start
+      push: embedded_closure
+      with_prototype:
+      - match: '}'
+        scope: embedded.closure.end
+        pop: 3
+
+
+  embedded_css:
+    - meta_scope: embedded.css
+    - include: Packages/CSS/CSS.sublime-syntax
+
+
+  embedded_groovy:
+    - meta_scope: embedded.groovy
+
+    - match: ''
+      push: Packages/Groovy/Groovy.sublime-syntax
+      with_prototype:
+        - match: '%\>'
+          scope: embedded.groovy.end
+          pop: 2
+        - match: '"""'
+          push: embedded_html
+
+
+  embedded_html:
+    
+    - match: ''
+      push: Packages/HTML/HTML (Plain).sublime-syntax
+      with_prototype:
+      - match: '"""'
+        pop: 2
+
+      - match: '\${\s?_{'
+        scope: embedded.action.start
+        push: embedded_action
+        with_prototype:
+        - match: '}}'
+          scope: embedded.action.end
+          pop: 2
+
+      - match: '\${{'
+        scope: embedded.reaction.start
+        push: embedded_reaction
+        with_prototype:
+        - match: '}}'
+          scope: embedded.reaction.end
+          pop: 2
+        - match: '"""'
+          push: embedded_html
+        
+      - match: '\${'
+        scope: embedded.closure.start
+        push: embedded_closure
+        with_prototype:
+        - match: '}'
+          scope: embedded.closure.end
+          pop: 2
+
+      - include: tag
+        with_prototype:
+          - match: '\$'
+            scope: embedded.reaction
+
+
+  embedded_closure:
+    - meta_scope: embedded.closure
+
+    - match: ''
+      push: Packages/Groovy/Groovy.sublime-syntax
+
+
+  embedded_action: 
+    - meta_scope: embedded.action
+
+    - match: ''
+      push: Packages/Groovy/Groovy.sublime-syntax
+
+
+  embedded_reaction: 
+    - meta_scope: embedded.reaction
+
+    - match: ''
+      push: Packages/Groovy/Groovy.sublime-syntax
+
+
+  tag-generic-attribute-value:
+    - match: '\${\s_{'
+      scope: embedded.action.start
+      push: embedded_action
+      with_prototype:
+      - match: '}}'
+        scope: embedded.action.end
+        pop: 3
+    - match: \"
+      scope:
+        meta.string.html string.quoted.double.html
+        punctuation.definition.string.begin.html
+      set: tag-generic-attribute-value-double-quoted-content
+    - match: \'
+      scope:
+        meta.string.html string.quoted.single.html
+        punctuation.definition.string.begin.html
+      set: tag-generic-attribute-value-single-quoted-content
+    - match: '{{unquoted_attribute_start}}'
+      set: tag-generic-attribute-value-unquoted-content
+    - include: else-pop
