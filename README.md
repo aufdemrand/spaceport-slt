@@ -1,5 +1,5 @@
 # spaceport-slt
-Syntax Highlighting and LSP for Spaceport
+Syntax Highlighting and LSP for Spaceport using Sublime Text.
 
 This is a very early rendidtion of a Spaceport LSP. Under active development.
 
