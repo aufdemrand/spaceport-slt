@@ -1,0 +1,34 @@
+{
+	"variables":
+	{
+	},
+	"globals":
+	{
+	},
+	"rules":
+	[
+		{
+			"name": "embedded.groovy",
+			"scope": "embedded.groovy",
+			"background": "color(black alpha(0.5))"
+		},
+
+		{
+			"name": "embedded.closure",
+			"scope": "embedded.closure",
+			"background": "color(black alpha(0.7))"
+		},
+
+		{
+			"name": "embedded.action",
+			"scope": "embedded.action",
+			"background": "color(goldenrodyellow alpha(0.1))"
+		},
+
+		{
+			"name": "embedded.reaction",
+			"scope": "embedded.reaction",
+			"background": "color(rebeccapurple alpha(0.1))"
+		}
+	]
+}
