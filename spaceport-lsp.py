@@ -182,11 +182,13 @@ class WebSocketLspClient:
 
 
 lsp_client = None
+settings = sublime.load_settings("YourPackageName.sublime-settings")
 
 def plugin_loaded():
     print("SpaceportLSP plugin loaded")
+    global settings
     global lsp_client
-    lsp_client = WebSocketLspClient("ws://127.0.0.1:10000")
+    lsp_client = WebSocketLspClient(settings.get("spaceport_address"))
     if not lsp_client.connect():
         lsp_client = None
 
@@ -198,9 +200,10 @@ def plugin_unloaded():
 
 class WebSocketLspConnectCommand(sublime_plugin.WindowCommand):
     def run(self):
+        global settings
         global lsp_client
         if lsp_client is None:
-            lsp_client = WebSocketLspClient("ws://127.0.0.1:10000")
+            lsp_client = WebSocketLspClient(settings.get("spaceport_address"))
             if not lsp_client.connect():
                 lsp_client = None
 
