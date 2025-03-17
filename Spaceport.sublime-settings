@@ -1,4 +1,3 @@
 {
-    "spaceport_address": "127.0.0.1",
-    "spaceport_port": 8080
+    "spaceport_address": "ws://127.0.0.1:8080"
 }
