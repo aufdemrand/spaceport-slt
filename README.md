@@ -15,12 +15,11 @@ Insert this entry into your 'repositories' key in 'Package Control.sublime-setti
 
 
 ## Settings
-Create a Spaceport.sublime-settings in your user file and specify a spaceport_address and spaceport_port. Or, host locally at port 8080.
+Create a Spaceport.sublime-settings in your user file and specify a spaceport_address. Or, host locally at port 8080. Use wss:// if connecting to a SSL-enabled Spaceport.
 
 ```
 {
-    "spaceport_address": "127.0.0.1",
-    "spaceport_port": 8080
+        "spaceport_address": "ws://127.0.0.1:8080"
 }
 ```
 
