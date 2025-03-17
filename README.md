@@ -1,10 +1,10 @@
 # spaceport-slt
 Syntax Highlighting and LSP for Spaceport using Sublime Text.
 
-This is a very early rendidtion of a Spaceport LSP. Under active development.
+This is a very early rendition of a Spaceport package enableing syntax highlighting and LSP support. Under active development.
 
 ## Dependencies
-Insert this entry into your repositories 'Package Control.sublime-settings' to fetch this from Package Control, and sastisfy the dependency of the websocket-client python library.
+Insert this entry into your 'repositories' key in 'Package Control.sublime-settings' to fetch this from Package Control, and sastisfy the dependency of the websocket-client python library.
 
 ```
 "repositories":
@@ -14,8 +14,18 @@ Insert this entry into your repositories 'Package Control.sublime-settings' to f
 ```
 
 
+## Settings
+Create a Spaceport.sublime-settings in your user file and specify a spaceport_address and spaceport_port. Or, host locally at port 8080.
+
+```
+{
+    "spaceport_address": "127.0.0.1",
+    "spaceport_port": 8080
+}
+```
+
 ## Embedded Blocks
-Insert this entry into the 'rules' on your current color-scheme settings to enable color coded blocks when editing .ghtml files.
+Insert this entry into the 'rules' of your current color-scheme settings to enable color coded blocks when editing .ghtml files.
 
 ```
 "rules":
