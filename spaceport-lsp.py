@@ -182,7 +182,7 @@ class WebSocketLspClient:
 
 
 lsp_client = None
-settings = sublime.load_settings("YourPackageName.sublime-settings")
+settings = sublime.load_settings("Spaceport.sublime-settings")
 
 def plugin_loaded():
     print("SpaceportLSP plugin loaded")
