@@ -5,6 +5,7 @@ import sublime_plugin
 import websocket
 import urllib.parse
 import time
+import ssl
 
 # WebSocket LSP for use with Spaceport and Sublime Text.
 
@@ -25,9 +26,10 @@ class WebSocketLspClient:
                 on_error=self.on_error,
                 on_close=self.on_close,
                 on_open=self.on_open,
+                sslopt={"cert_reqs": ssl.CERT_NONE}
             )
             self.running = True
-            threading.Thread(target=self.ws.run_forever, daemon=True).start()
+            threading.Thread(target=self.ws.run_forever, daemon=True, kwargs={'sslopt': {"cert_reqs": ssl.CERT_NONE}}).start()
         except Exception as e:
             print("Failed to connect to LSP server: {}".format(e))
             sublime.error_message("Failed to connect to LSP server: {}".format(e))
