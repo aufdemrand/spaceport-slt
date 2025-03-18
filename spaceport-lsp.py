@@ -17,9 +17,7 @@ class WebSocketLspClient:
         self.pending_requests = {}
         self.running = False
         self.connected = False
-        self.ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
-        self.ssl_context.check_hostname = False
-        self.ssl_context.verify_mode = ssl.CERT_NONE
+        self.sslopt = {"cert_reqs": ssl.CERT_NONE, "check_hostname": False}
 
     def connect(self):
         try:
@@ -31,7 +29,7 @@ class WebSocketLspClient:
                 on_open=self.on_open
             )
             self.running = True
-            threading.Thread(target=self.ws.run_forever, daemon=True, kwargs={'sslopt': self.ssl_context.options}).start()
+            threading.Thread(target=self.ws.run_forever, daemon=True, kwargs={'sslopt': self.sslopt}).start()
         except Exception as e:
             print("Failed to connect to LSP server: {}".format(e))
             sublime.error_message("Failed to connect to LSP server: {}".format(e))
