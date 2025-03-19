@@ -30,12 +30,12 @@ class WebSocketLspClient:
             )
             self.running = True
             threading.Thread(target=self.ws.run_forever, daemon=True, kwargs={'sslopt': self.sslopt}).start()
+            return True  # Return True on successful connection thread start
         except Exception as e:
             print("Failed to connect to Spaceport LSP server: {}".format(e))
             sublime.error_message("Failed to connect to Spaceport LSP server: {}".format(e))
-            self.disconnect()
+            self.disconnect() # disconnect if connect fails
             return False
-        return True
 
     def disconnect(self):
         self.running = False
@@ -43,7 +43,7 @@ class WebSocketLspClient:
         if self.ws:
             self.ws.close()
             self.ws = None
-        global lsp_client
+        global lsp_client  # Correctly reference the global client
         print("Disconnected from Spaceport LSP server.")
         lsp_client = None
 
@@ -96,6 +96,7 @@ class WebSocketLspClient:
     def on_error(self, ws, error):
         print("WebSocket error: {}".format(error))
 
+
     def on_close(self, ws, close_status_code=None, close_msg=None):
         print("WebSocket connection closed.")
         self.disconnect()
@@ -138,6 +139,7 @@ class WebSocketLspClient:
         diagnostics = params.get("diagnostics", [])
         print("Diagnostics for {}: {}".format(uri, diagnostics))
 
+
     def initialize(self):
         params = {
             "processId": None,
@@ -151,8 +153,8 @@ class WebSocketLspClient:
                     }
                 }
             },
-            "rootUri": None,
-            "workspaceFolders": None,
+            "rootUri": None,  #  Could be set, but needs careful handling
+            "workspaceFolders": None, # Could be set with sublime.active_window().folders()
         }
         self.send_request("initialize", params, self.handle_initialize_response)
 
@@ -172,7 +174,7 @@ class WebSocketLspClient:
             "textDocument": {
                 "uri": self.get_file_uri(view),
                 "languageId": view.settings().get("syntax").split('/')[-1].split('.')[0].lower(),
-                "version": 1,
+                "version": 1,  #  Version should be incremented on changes
                 "text": view.substr(sublime.Region(0, view.size())),
             }
         }
@@ -185,16 +187,20 @@ class WebSocketLspClient:
         return ""
 
 
-lsp_client = None
-settings = sublime.load_settings("Spaceport.sublime-settings")
+
+lsp_client = None  # Initialize lsp_client globally
+
 
 def plugin_loaded():
     print("SpaceportLSP plugin loaded")
-    global settings
     global lsp_client
-    lsp_client = WebSocketLspClient(settings.get("spaceport_address"))
-    if not lsp_client.connect():
-        lsp_client = None
+    settings = sublime.load_settings("Spaceport.sublime-settings")
+    spaceport_address = settings.get("spaceport_address")
+    if spaceport_address:  # Only connect if address is set
+      lsp_client = WebSocketLspClient(spaceport_address)
+      lsp_client.connect()
+    else:
+        print("Spaceport address not configured.")
 
 def plugin_unloaded():
     global lsp_client
@@ -202,14 +208,19 @@ def plugin_unloaded():
         lsp_client.disconnect()
         lsp_client = None
 
+
+
 class WebSocketLspConnectCommand(sublime_plugin.WindowCommand):
     def run(self):
-        global settings
         global lsp_client
         if lsp_client is None:
-            lsp_client = WebSocketLspClient(settings.get("spaceport_address"))
-            if not lsp_client.connect():
-                lsp_client = None
+            settings = sublime.load_settings("Spaceport.sublime-settings")
+            spaceport_address = settings.get("spaceport_address")
+            if spaceport_address:
+              lsp_client = WebSocketLspClient(spaceport_address)
+              lsp_client.connect()
+            else:
+                sublime.error_message("Spaceport address not configured.")
 
     def is_enabled(self):
         global lsp_client
@@ -233,31 +244,45 @@ class WebSocketLspDisconnectCommand(sublime_plugin.WindowCommand):
         return "Disconnect from Spaceport LSP Server"
 
 class SpaceportSettingsListener(sublime_plugin.EventListener):
-    def on_post_save_settings(self, settings_view):
-        global settings
-        global lsp_client
+    def on_post_save(self, view):
+        settings_file = "Spaceport.sublime-settings"
+        if view.file_name() and view.file_name().endswith(settings_file):
+            print("Spaceport settings saved, reloading LSP connection.")
+            global lsp_client
 
-        if settings_view.name() == "Spaceport.sublime-settings":
-            print("Spaceport settings changed, reloading LSP connection.")
+            # Reload settings to get the updated values.
+            settings = sublime.load_settings(settings_file)
+            spaceport_address = settings.get("spaceport_address")
+
+            if not spaceport_address:
+                sublime.error_message("Spaceport address not configured!")
+                return # Exit if no address
+
             if lsp_client:
                 lsp_client.disconnect()
-                lsp_client = None
 
-            lsp_client = WebSocketLspClient(settings.get("spaceport_address"))
-            if not lsp_client.connect():
+            try:
+                lsp_client = WebSocketLspClient(spaceport_address)
+                if not lsp_client.connect():  # Check the connection.
+                    sublime.error_message("Failed to connect to Spaceport LSP server.")
+                    lsp_client = None  # Set to None if connection fails
+
+            except Exception as e:
+                sublime.error_message(f"Error connecting to Spaceport: {e}")
                 lsp_client = None
 
 class WebSocketLspEventListener(sublime_plugin.EventListener):
     def __init__(self):
         self.last_change_time = 0
-        self.debounce_delay = 200
+        self.debounce_delay = 200  # Milliseconds
         self.completions = []
         self.completion_ready = False
-        self.view = None  # Keep track of the view
+        self.view = None
         self._next_completion_request_location = None
 
     def on_modified_async(self, view):
         self.handle_did_change(view)
+
 
     def handle_did_change(self, view):
         global lsp_client
@@ -287,14 +312,13 @@ class WebSocketLspEventListener(sublime_plugin.EventListener):
         if not lsp_client or not view.file_name() or not lsp_client.connected:
             return []
 
-        self.view = view  # Store the view
+        self.view = view
         self._next_completion_request_location = locations[0]
 
-        #  Check if we have cached completions *for this specific view*.
         if self.completion_ready and self.view == view:
-            self.completion_ready = False # Reset flag immediately.
+            self.completion_ready = False
             print("Returning cached completions")
-            return (self.completions, 0)
+            return (self.completions, 0)  # Return cached completions
 
         # If no cached completions, request them.
         self.request_completions(view, locations)
@@ -305,7 +329,7 @@ class WebSocketLspEventListener(sublime_plugin.EventListener):
         line, col = view.rowcol(cursor_pos)
         trigger_char = ""
         if col > 0:
-            trigger_char = view.substr(sublime.Region(cursor_pos - 1, cursor_pos))
+          trigger_char = view.substr(sublime.Region(cursor_pos - 1, cursor_pos))
         print("trigger_char {}".format(trigger_char))
 
         params = {
@@ -341,14 +365,14 @@ class WebSocketLspEventListener(sublime_plugin.EventListener):
         for item in items:
             label = item.get("label", "")
             detail = item.get("detail", "")
-            insert_text = item.get("insertText", label)
+            insert_text = item.get("insertText", label)  # Fallback to label
 
             if "textEdit" in item:
                 text_edit = item["textEdit"]
                 if "range" in text_edit and "newText" in text_edit:
                     insert_text = text_edit["newText"]
 
-            if item.get("insertTextFormat") == 2:
+            if item.get("insertTextFormat") == 2:  # Snippet
                 insert_text = self.convert_lsp_snippet_to_sublime(insert_text)
 
             completions.append(("{}\t{}".format(label, detail), insert_text))
@@ -360,13 +384,14 @@ class WebSocketLspEventListener(sublime_plugin.EventListener):
         self.completions = completions
         self.completion_ready = True
 
-        # Only trigger auto_complete IF the cursor is still at the location we requested completions for!
+        # Trigger auto_complete ONLY if the cursor is still at the location we requested
         if self.view and self._next_completion_request_location == self.view.sel()[0].begin():
            sublime.set_timeout(lambda: self.view.run_command('auto_complete'), 0)
 
 
     def convert_lsp_snippet_to_sublime(self, lsp_snippet):
-        sublime_snippet = lsp_snippet.replace("\\$", "$")
-        sublime_snippet = sublime_snippet.replace("${", "$")
-        sublime_snippet = sublime_snippet.replace("}", "")
+        # Basic conversion:  Replace LSP placeholders with Sublime placeholders.
+        sublime_snippet = lsp_snippet.replace("\\$", "$")  # Escape $
+        sublime_snippet = sublime_snippet.replace("${", "$") # Replace start
+        sublime_snippet = sublime_snippet.replace("}", "")   # Remove end curly
         return sublime_snippet
