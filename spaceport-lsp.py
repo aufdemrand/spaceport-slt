@@ -268,7 +268,7 @@ class SpaceportSettingsListener(sublime_plugin.EventListener):
                     lsp_client = None  # Set to None if connection fails
 
             except Exception as e:
-                sublime.error_message(f"Error connecting to Spaceport: {e}")
+                sublime.error_message("Error connecting to Spaceport: {}".format(e))
                 lsp_client = None
 
 class WebSocketLspEventListener(sublime_plugin.EventListener):
