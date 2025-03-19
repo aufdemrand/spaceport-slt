@@ -31,8 +31,8 @@ class WebSocketLspClient:
             self.running = True
             threading.Thread(target=self.ws.run_forever, daemon=True, kwargs={'sslopt': self.sslopt}).start()
         except Exception as e:
-            print("Failed to connect to LSP server: {}".format(e))
-            sublime.error_message("Failed to connect to LSP server: {}".format(e))
+            print("Failed to connect to Spaceport LSP server: {}".format(e))
+            sublime.error_message("Failed to connect to Spaceport LSP server: {}".format(e))
             self.disconnect()
             return False
         return True
@@ -43,7 +43,9 @@ class WebSocketLspClient:
         if self.ws:
             self.ws.close()
             self.ws = None
-        print("Disconnected from LSP server.")
+        global lsp_client
+        print("Disconnected from Spaceport LSP server.")
+        lsp_client = None
 
     def send_request(self, method, params, callback=None):
         if not self.connected:
@@ -75,7 +77,7 @@ class WebSocketLspClient:
 
     def send_message(self, message):
         if not self.connected:
-            print("Not connected to the server")
+            print("Not connected to the Spaceport LSP server")
             return
         try:
             self.ws.send(json.dumps(message))
@@ -99,7 +101,7 @@ class WebSocketLspClient:
         self.disconnect()
         if self.running:
             sublime.error_message(
-                "Websocket connection to LSP server closed unexpectedly: {}".format(
+                "Websocket connection to Spaceport LSP server closed unexpectedly: {}".format(
                     close_msg
                 )
             )
@@ -214,7 +216,7 @@ class WebSocketLspConnectCommand(sublime_plugin.WindowCommand):
         return lsp_client is None
 
     def description(self):
-        return "Connect to WebSocket LSP Server"
+        return "Connect to Spaceport LSP Server"
 
 class WebSocketLspDisconnectCommand(sublime_plugin.WindowCommand):
     def run(self):
@@ -228,7 +230,22 @@ class WebSocketLspDisconnectCommand(sublime_plugin.WindowCommand):
         return lsp_client is not None
 
     def description(self):
-        return "Disconnect from WebSocket LSP Server"
+        return "Disconnect from Spaceport LSP Server"
+
+class SpaceportSettingsListener(sublime_plugin.EventListener):
+    def on_post_save_settings(self, settings_view):
+        global settings
+        global lsp_client
+
+        if settings_view.name() == "Spaceport.sublime-settings":
+            print("Spaceport settings changed, reloading LSP connection.")
+            if lsp_client:
+                lsp_client.disconnect()
+                lsp_client = None
+
+            lsp_client = WebSocketLspClient(settings.get("spaceport_address"))
+            if not lsp_client.connect():
+                lsp_client = None
 
 class WebSocketLspEventListener(sublime_plugin.EventListener):
     def __init__(self):
