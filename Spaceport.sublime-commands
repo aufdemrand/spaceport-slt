@@ -1,0 +1,10 @@
+[
+    {
+        "caption": "Spaceport LSP: Connect",
+        "command": "web_socket_lsp_connect"
+    },
+    {
+        "caption": "Spaceport LSP: Disconnect",
+        "command": "web_socket_lsp_disconnect"
+    }
+]
