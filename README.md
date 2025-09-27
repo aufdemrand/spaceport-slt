@@ -1,10 +1,10 @@
 # spaceport-slt
 Syntax Highlighting and LSP for Spaceport using Sublime Text.
 
-This is a very early rendition of a Spaceport package enableing syntax highlighting and LSP support. Under active development.
+This is a Spaceport package enabling syntax highlighting for Launchpad .ghtml files. This package is also working to enable Spaceport LSP support, but is very experimental and under active development.
 
 ## Dependencies
-Insert this entry into your 'repositories' key in 'Package Control.sublime-settings' to fetch this from Package Control, and sastisfy the dependency of the websocket-client python library.
+Insert this entry into your 'repositories' key in 'Package Control.sublime-settings' to fetch this from Package Control, and sastisfy the dependency of the websocket-client python library use for the LSP.
 
 ```
 "repositories":
@@ -23,8 +23,8 @@ Create a Spaceport.sublime-settings in your user file and specify a spaceport_ad
 }
 ```
 
-## Embedded Blocks
-Insert this entry into the 'rules' of your current color-scheme settings to enable color coded blocks when editing .ghtml files.
+## Embedded Blocks in .GHTML files
+Insert this entry into the 'rules' of your current color-scheme settings to enable color coded blocks when editing .ghtml files. 
 
 ```
 "rules":
